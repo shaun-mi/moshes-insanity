@@ -68,18 +68,36 @@ def get_corners(cube):
         bottom + cube[4] + cube[5],
         bottom + cube[5] + cube[2],
     ]
- 
-def get_matching_corners(cube1, cube2):
+
+def spin_corner(corner):
+    """Get the same corner if the cube was spun on rotation. Example: YRP -> RPY"""
+    return corner[1:] + corner[0]
+
+def get_all_corner_names(corner):
+    """Create the set of all corner names for this corner by spinning it."""
+    corner1 = spin_corner(corner)
+    corner2 = spin_corner(corner1)
+    return { corner, corner1, corner2 }
+
+def is_corner_matching(corner1, corner2):
+    """Determine if two corners match. The corner may need to be spun to find a match."""
+    return any(get_all_corner_names(corner1).intersection(get_all_corner_names(corner2)))
+
+def has_matching_corners(cube1, cube2):
     """"Get the set of corners that match between the given cubes."""
     corners1 = set(get_corners(cube1))
     corners2 = set(get_corners(cube2))
-    return corners1.intersection(corners2)
+    for corner1 in corners1:
+        for corner2 in corners2:
+            if is_corner_matching(corner1, corner2):
+                return True
+    return False
 
 def generate_exclusions(possible_cubes):
     """Build a dictionary of cube to list of cubes that have no corners in common."""
     exclusions = {}
     for cube_key in possible_cubes:
-        exclusion_list = [cube_value for cube_value in possible_cubes if not get_matching_corners(cube_key, cube_value)]
+        exclusion_list = [cube_value for cube_value in possible_cubes if not has_matching_corners(cube_key, cube_value)]
         exclusions[cube_key] = exclusion_list
     return exclusions
 
@@ -117,7 +135,7 @@ def main():
     # TODO: Delete this. This is just so Moshe can verify that I did this correctly.
     print()
     print("The set of unique cubes:")
-    for i, x in enumerate(generate_cubes()):
+    for i, x in enumerate(possible_cubes):
         print(f"    {i}:{x}")
 
     # Create the set of exclusions by cube
