@@ -94,11 +94,11 @@ def has_matching_corners(cube1, cube2):
     return False
 
 def generate_exclusions(possible_cubes):
-    """Build a dictionary of cube to list of cubes that have no corners in common."""
+    """Build a dictionary of cube index to list of cube indices that have no corners in common."""
     exclusions = {}
-    for cube_key in possible_cubes:
-        exclusion_list = [cube_value for cube_value in possible_cubes if not has_matching_corners(cube_key, cube_value)]
-        exclusions[cube_key] = exclusion_list
+    for i, cube_key in enumerate(possible_cubes):
+        exclusion_list = [j for j, cube_value in enumerate(possible_cubes) if not has_matching_corners(cube_key, cube_value)]
+        exclusions[i] = exclusion_list
     return exclusions
 
 def generate_chessboard(cubes, oracle_cube):
@@ -143,9 +143,9 @@ def main():
 
     # TODO: Delete this. This is just so Moshe can verify that I did this correctly.
     print()
-    print("The exclusions set: THIS IS CALCULATED INCORRECTLY!")
-    for i,e in enumerate(exclusions):
-        print(f"    {i}:{{{e}}}")
+    print("Exclusion sets are:")
+    for k in exclusions:
+        print(f"    {k}:{exclusions[k]}")
 
     # Pick a random set of 8 cubes to play with
     game_cube_numbers = set()
