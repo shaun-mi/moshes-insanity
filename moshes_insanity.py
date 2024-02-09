@@ -93,11 +93,18 @@ def has_matching_corners(cube1, cube2):
                 return True
     return False
 
+def has_a_matching_corner(corner1, cube2):
+    """Determine whether a given corner matches any corners of the given cube."""
+    for corner2 in set(get_corners(cube2)):
+        if is_corner_matching(corner1, corner2):
+            return True
+    return False
+
 def generate_exclusions(possible_cubes):
     """Build a dictionary of cube index to list of cube indices that have no corners in common."""
     exclusions = {}
     for i, cube_key in enumerate(possible_cubes):
-        exclusion_list = [j for j, cube_value in enumerate(possible_cubes) if not has_matching_corners(cube_key, cube_value)]
+        exclusion_list = {j for j, cube_value in enumerate(possible_cubes) if not has_matching_corners(cube_key, cube_value)}
         exclusions[i] = exclusion_list
     return exclusions
 
@@ -113,8 +120,7 @@ def generate_chessboard(cubes, oracle_cube):
     for c in cubes:
         top = oracle_cube[1]
         bottom = oracle_cube[0]
-        chessboard[''.join(c)] = { c : False for c in oracle_corners }
-        # TODO: Fill in the values of the chessboard.
+        chessboard[''.join(c)] = { corner : has_a_matching_corner(corner, c) for corner in oracle_corners }
     return chessboard
 
 def print_chessboard(chessboard, oracle_cube):
@@ -127,6 +133,18 @@ def print_chessboard(chessboard, oracle_cube):
     for cube in chessboard:
         values = [str(int(v)) for v in chessboard[cube].values()]
         print(cube + "  " + "   ".join(values))
+
+def get_oracle_cubes(possible_cubes, exclusions, game_cube_numbers):
+    """Determine the set of oracle cubes for the given game cubes. This only checks for exclusions,
+    so it is possible that an oracle cube has no solution."""
+    # For each possible cube, if none of the game cubes are in its exclusion list, it's an oracle cube.
+    g = set(game_cube_numbers)
+    oracles = []
+    for c, _ in enumerate(possible_cubes):
+        if not any(g.intersection(exclusions[c])):
+            oracles.append(c)
+    return oracles
+
 
 def main():
     # Create the set of 30 possible small cubes
@@ -159,13 +177,22 @@ def main():
         print("   ", c, possible_cubes[c])
     
 
-    # TODO: calculate the oracle_cube; this is just a dummy value for now
-    oracle_cube = possible_cubes[0]
-    
-    chessboard = generate_chessboard(game_cubes, oracle_cube)
+    # Calculate the oracle_cube
+    oracle_cubes = get_oracle_cubes(possible_cubes, exclusions, game_cube_numbers)
+
     print()
-    print("chessboard:")
-    print_chessboard(chessboard, oracle_cube)
+    print("oracle cubes are:")
+    print("   ", oracle_cubes)
+    if not oracle_cubes:
+        print("There are no possible oracle cubes.")
+    else:
+        oracle_cube_number = oracle_cubes[0]
+        oracle_cube = possible_cubes[oracle_cube_number]
+        
+        chessboard = generate_chessboard(game_cubes, oracle_cube)
+        print()
+        print("chessboard:")
+        print_chessboard(chessboard, oracle_cube)
 
 
 if __name__ == "__main__":
